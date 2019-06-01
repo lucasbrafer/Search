@@ -3,9 +3,10 @@ using System.IO;
 
 namespace SearchAED
 {
-    class Dados
+    class Registro
     {
-        public int room_id { get; set; }
+        //chave -> room_id
+        public int Chave { get; set; }
         public int host_id { get; set; }
         public string room_type { get; set; }
         public string country { get; set; }
@@ -18,12 +19,98 @@ namespace SearchAED
         public double price { get; set; }
         public string property_type { get; set; }
     }
+
+    class Arvore_Binaria
+    {
+        class No
+        {
+            public Registro Dado;
+            public No Esq, Dir;
+            public No(Registro _dado)
+            {
+                Dado = _dado;
+                Esq = Dir = null;
+            }
+        }
+
+        private No Raiz;
+
+        public Arvore_Binaria()
+        {
+            Raiz = null;
+        }
+
+        public bool Vazia()
+        {
+            return Raiz == null;
+        }
+
+        public void Inserir(Registro _dado)
+        {
+            Raiz = Inserir(Raiz, _dado);
+        }
+
+        private No Inserir(No no, Registro _dado)
+        {
+            if (no == null)
+                no = new No(_dado);
+            else if (_dado.Chave < no.Dado.Chave) no.Esq = Inserir(no.Esq, _dado);
+            else if (_dado.Chave > no.Dado.Chave) no.Dir = Inserir(no.Dir, _dado);
+            else Console.WriteLine("Erro: Registro ja existente");
+            return no;
+        }
+
+        private void ImprimirEmOrdem(No no)
+        {
+            if (no != null)
+            {
+                ImprimirEmOrdem(no.Esq);
+                Console.WriteLine(no.Dado.Chave);
+                ImprimirEmOrdem(no.Dir);
+            }
+        }
+        public void ImprimirEmOrdem()
+        {
+            ImprimirEmOrdem(Raiz);
+        }
+        public void Remover(int _chave)
+        {
+            Raiz = Remover(Raiz, _chave);
+        }
+
+        private No Remover(No no, int _chave)
+        {
+            if (no == null) Console.WriteLine("Erro: Registro nao encontrado");
+            else if (_chave < no.Dado.Chave) no.Esq = Remover(no.Esq, _chave);
+            else if (_chave > no.Dado.Chave) no.Dir = Remover(no.Dir, _chave);
+            else
+            {
+                if (no.Dir == null) no = no.Esq;
+                else if (no.Esq == null) no = no.Dir;
+                else no.Esq = Antecessor(no, no.Esq);
+            }
+            return no;
+        }
+
+        private No Antecessor(No no, No ant)
+        {
+            if (ant.Dir != null) ant.Dir = Antecessor(no, ant.Dir);
+            else
+            {
+                no.Dado = ant.Dado;
+                ant = ant.Esq;
+            }
+            return ant;
+        }
+    }
+
     class Program
     {
-        static Dados PreencheArq(string[] linhasplit)
+        static Registro[] dados = new Registro[128000];
+        static Registro PreencheArq(string[] linhasplit)
         {
-            Dados x = new Dados();
-            x.room_id = int.Parse(linhasplit[0]);
+            Registro x = new Registro();
+            x.Chave = int.Parse(linhasplit[0]);
             x.host_id = int.Parse(linhasplit[1]);
             x.room_type = linhasplit[2];
             x.country = linhasplit[3];
@@ -57,23 +144,16 @@ namespace SearchAED
             }
             arq.Close();
         }
-
-        static Dados[] dados = new Dados[128000];
-
-        static void Main(string[] args)
-        {
-
-        }
-        static int Pesquisa_Sequencial(Dados[] Vetor_Dados_Ordenados, int room_id)
+        static int Pesquisa_Sequencial(Registro[] Vetor_Dados_Ordenados, int room_id)
         {
             for(int i=0; i < Vetor_Dados_Ordenados.Length; i++)
             {
-                if(Vetor_Dados_Ordenados[i].room_id == room_id)
+                if(Vetor_Dados_Ordenados[i].Chave == room_id)
                     return i;
             }
             return -1;
         }
-        static int Pesquisa_Binaria(Dados[] Vetor_Dados_Ordenados, int room_id)
+        static int Pesquisa_Binaria(Registro[] Vetor_Dados_Ordenados, int room_id)
         {
             int Inicio = 0;
             int Fim = Vetor_Dados_Ordenados.Length - 1;
@@ -81,10 +161,10 @@ namespace SearchAED
             {
                 int Meio = (Inicio + Fim) / 2;
 
-                if (Vetor_Dados_Ordenados[Meio].room_id == room_id)
+                if (Vetor_Dados_Ordenados[Meio].Chave == room_id)
                     return Meio;
 
-                if (Vetor_Dados_Ordenados[Meio].room_id > room_id)
+                if (Vetor_Dados_Ordenados[Meio].Chave > room_id)
                     Fim = Meio - 1;
                 else
                     Inicio = Meio + 1;
@@ -92,98 +172,11 @@ namespace SearchAED
 
             return -1;
         }
-        class Registro
+
+        
+        static void Main(string[] args)
         {
-            public Dados Dado { get; set; }
 
-            public Registro(int _chave)
-            {
-                Dado.room_id = _chave;
-            }
-        }
-
-        class Arvore_Binaria
-        {
-            class No
-            {
-                public Registro Dado;
-                public No Esq, Dir;
-                public No(Registro _dado)
-                {
-                    Dado = _dado;
-                    Esq = Dir = null;
-                }
-            }    
-
-            private No Raiz;
-
-            public ArvoreBinaria()
-            {
-                Raiz = null;
-            }
-
-            public bool Vazia()
-            {
-                return Raiz == null;
-            }
-
-            public void Inserir(Registro _dado)
-            {
-                Raiz = Inserir(Raiz, _dado);            
-            }
-
-            private No Inserir(No no, Registro _dado)
-            {
-                if (no == null)
-                    no = new No(_dado);
-                else if (_dado.Chave < no.Dado.Chave) no.Esq = Inserir(no.Esq, _dado);
-                else if (_dado.Chave > no.Dado.Chave) no.Dir = Inserir(no.Dir, _dado);
-                else Console.WriteLine("Erro: Registro ja existente");
-                return no;
-            }
-
-            private void ImprimirEmOrdem(No no)
-            {
-                if(no != null)
-                {               
-                    ImprimirEmOrdem(no.Esq);
-                    Console.WriteLine(no.Dado.Chave);
-                    ImprimirEmOrdem(no.Dir);
-                }
-            }
-            public void ImprimirEmOrdem() 
-            {
-                ImprimirEmOrdem(Raiz);
-            }
-            public void Remover(int _chave)
-            {
-                Raiz = Remover(Raiz, _chave);
-            }
-
-            private No Remover(No no, int _chave)
-            {
-                if (no == null) Console.WriteLine("Erro: Registro nao encontrado");
-                else if (_chave < no.Dado.Chave) no.Esq = Remover(no.Esq, _chave);
-                else if (_chave > no.Dado.Chave) no.Dir = Remover(no.Dir, _chave);
-                else
-                {
-                    if (no.Dir == null) no = no.Esq;
-                    else if (no.Esq == null) no = no.Dir;
-                    else no.Esq = Antecessor(no, no.Esq);
-                }
-                return no;
-            }
-
-            private No Antecessor(No no, No ant)
-            {
-                if (ant.Dir != null) ant.Dir = Antecessor(no, ant.Dir);
-                else
-                {
-                    no.Dado = ant.Dado;
-                    ant = ant.Esq;
-                }
-                return ant;
-            }
         }
     }
 }
