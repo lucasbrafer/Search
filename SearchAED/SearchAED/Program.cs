@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
 namespace SearchAED
 {
@@ -215,7 +216,7 @@ namespace SearchAED
             return vetor;
         }
 
-        static Registro Pesquisa_Binaria(Registro[] vetor, int room_id)
+        static Registro Pesquisa_Binaria(ref Registro[] vetor, int room_id)
         {
             int Inicio = 0;
             int Fim = vetor.Length - 1;
@@ -231,6 +232,7 @@ namespace SearchAED
                     Fim = Meio - 1;
                 else
                     Inicio = Meio + 1;
+
             }
 
             return null;
@@ -238,7 +240,7 @@ namespace SearchAED
 
 
         //--> Pesquisa Sequencial
-        static Registro Pesquisa_Sequencial(Registro[] vetor, int room_id)
+        static Registro Pesquisa_Sequencial(ref Registro[] vetor, int room_id)
         {
             for(int i=0; i < vetor.Length; i++)
             {
@@ -292,164 +294,28 @@ namespace SearchAED
 
 
 
-        static void Main(string[] args)
+        //--> Media do tempo dos testes
+        public static double[] MediaTempo(double[,] vetor)
         {
-            Registro[] dados = new Registro[128000];
-            LerArquivo(ref dados);
-
-            double[,] Sequencial = new double[5,3];
-            double[,] PesquisaBinaria = new double[5,3];
-            double[,] ArvoreBinaria = new double[5,3];
-            double[,] TabelaHash = new double[5,3];
-
-            //--> Pesquisa Binaria
-            Registro[] DadosOrdenados = QuickSort(dados, 0, dados.Length - 1);
-
-            //--> Arvore
-            ArvoreBinaria arvore = new ArvoreBinaria();
-
-            for (int i = 0; i < dados.Length; i++)
-                arvore.Inserir(dados[i]);
-
-            //--> TabelaHash
-            TabelaHash hash = new TabelaHash(120001);
-
-            for (int i = 0; i < dados.Length; i++)
-                hash.Inserir(dados[i]);
-
-
-            int mid = dados.Length % 2;
-            int final = dados.Length - 1;
-
-            int id_initial = dados[0].room_id;
-            int id_mid = dados[mid].room_id;
-            int id_final = dados[final].room_id;
-
+            double[] A = new double[5];
+            double[] B = new double[5];
+            double[] C = new double[5];
 
             for (int i = 0; i < 5; i++)
             {
-                //Pesquisa Sequencial --> room_id
-                #region Sequencial
-
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-
-                Pesquisa_Sequencial(dados,id_initial);
-
-                watch.Stop();
-                Sequencial[i,0] = watch.ElapsedMilliseconds / 1000.0;
-
-
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                Pesquisa_Sequencial(dados, id_mid);
-
-                watch.Stop();
-                Sequencial[i, 1] = watch.ElapsedMilliseconds / 1000.0;
-
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                Pesquisa_Sequencial(dados, id_final);
-
-                watch.Stop();
-                Sequencial[i, 2] = watch.ElapsedMilliseconds / 1000.0;
-
-                #endregion
-
-
-                //Pesquisa Binaria -> room_id
-                #region PesquisaBinaria
-
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                Pesquisa_Binaria(DadosOrdenados, id_initial);
-
-                watch.Stop();
-                PesquisaBinaria[i, 0] = watch.ElapsedMilliseconds / 1000.0;
-
-
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                Pesquisa_Binaria(DadosOrdenados, id_mid);
-
-                watch.Stop();
-                PesquisaBinaria[i, 1] = watch.ElapsedMilliseconds / 1000.0;
-
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                Pesquisa_Binaria(DadosOrdenados, id_final);
-
-                watch.Stop();
-                PesquisaBinaria[i, 2] = watch.ElapsedMilliseconds / 1000.0;
-
-                #endregion
-
-
-                //Arvore Binaria --> room_id
-                #region ArvoreBinaria
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                arvore.Pesquisar(id_initial);
-
-                watch.Stop();
-                ArvoreBinaria[i, 0] = watch.ElapsedMilliseconds / 1000.0;
-
-
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                arvore.Pesquisar(id_mid);
-
-                watch.Stop();
-                ArvoreBinaria[i, 1] = watch.ElapsedMilliseconds / 1000.0;
-
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                arvore.Pesquisar(id_final);
-
-                watch.Stop();
-                ArvoreBinaria[i, 2] = watch.ElapsedMilliseconds / 1000.0;
-                #endregion
-
-
-                //Tabela Hash --> room_id
-                #region TabelaHash
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                hash.Pesquisar(id_initial);
-
-                watch.Stop();
-                TabelaHash[i, 0] = watch.ElapsedMilliseconds / 1000.0;
-
-
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                hash.Pesquisar(id_mid);
-
-                watch.Stop();
-                TabelaHash[i, 1] = watch.ElapsedMilliseconds / 1000.0;
-
-                watch = System.Diagnostics.Stopwatch.StartNew();
-
-                hash.Pesquisar(id_final);
-
-                watch.Stop();
-                TabelaHash[i, 2] = watch.ElapsedMilliseconds / 1000.0;
-                #endregion
-
+                A[i] = vetor[i, 0];
+                B[i] = vetor[i, 1];
+                C[i] = vetor[i, 2];
             }
 
+            double[] Resultado = new double[3];
 
+            Resultado[0] = MediaTempo(A);
+            Resultado[1] = MediaTempo(B);
+            Resultado[2] = MediaTempo(C);
 
-            FileStream arq = new FileStream("RelatorioID.txt", FileMode.Append);
-            StreamWriter write = new StreamWriter(arq);
+            return Resultado;
 
-
-            write.WriteLine("{0};{1};{2};{3}");
-
-            write.Close();
-            arq.Close();
-
-
-            Console.ReadKey();
         }
 
         public static double MediaTempo(double[] A)
@@ -467,6 +333,276 @@ namespace SearchAED
             return ((A[1] + A[2] + A[3]) / 3);
 
         }
+
+
+        static void Main(string[] args)
+        {
+            Registro[] dados = new Registro[128000];
+            LerArquivo(ref dados);
+
+            id_test(ref dados);
+          
+        }
+
+
+        //teste --> room_id
+        #region room_id
+
+        public static void id_test(ref Registro[] dados)
+        {
+            int mid = dados.Length % 2;
+            int final = dados.Length - 1;
+
+            int id_initial = dados[0].room_id;
+            int id_mid = dados[mid].room_id;
+            int id_final = dados[final].room_id;
+
+            Test_Sequential(ref dados, id_initial, id_mid, id_final);
+            Test_BinarySearch(ref dados, id_initial, id_mid, id_final);
+            Test_HashTable(ref dados, id_initial, id_mid, id_final);
+            Test_BinaryTree(ref dados, id_initial, id_mid, id_final);
+
+        }
+
+        #region Search Sequential
+
+        public static void Test_Sequential(ref Registro[] dados, int id_initial, int id_mid, int id_final)
+        {
+            double[,] Sequencial = new double[5, 3];
+
+
+            for (int i = 0; i < 5; i++)
+            {
+                //Pesquisa Sequencial --> room_id
+                #region Sequencial
+
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+
+                Pesquisa_Sequencial(ref dados, id_initial);
+
+                watch.Stop();
+                Sequencial[i, 0] = watch.ElapsedMilliseconds * 1000000;
+
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
+
+                Pesquisa_Sequencial(ref dados, id_mid);
+
+                watch.Stop();
+                Sequencial[i, 1] = watch.ElapsedMilliseconds * 1000000;
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
+
+                Console.WriteLine(Pesquisa_Sequencial(ref dados, id_final).bedrooms);
+
+                watch.Stop();
+                Sequencial[i, 2] = watch.ElapsedMilliseconds * 1000000;
+
+                #endregion
+
+            }
+
+            //--> Teste Sequencial
+            FileStream arq = new FileStream("sequential.txt", FileMode.Append);
+            StreamWriter write = new StreamWriter(arq);
+
+            double[] r = new double[3];
+            r = MediaTempo(Sequencial);
+
+            write.WriteLine("{0};{1};{2}", r[0], r[1], r[2]);
+
+
+            write.Close();
+            arq.Close();
+
+        }
+        #endregion
+
+
+        #region Binary Search
+        public static void Test_BinarySearch(ref Registro[] dados, int id_initial, int id_mid, int id_final)
+        {
+            double[,] PesquisaBinaria = new double[5, 3];
+
+            //--> Pesquisa Binaria
+            Registro[] DadosOrdenados = QuickSort(dados, 0, dados.Length - 1);
+
+
+            for (int i = 0; i < 5; i++)
+            {
+
+                //Pesquisa Binaria -> room_id
+                #region PesquisaBinaria
+
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+
+                Pesquisa_Binaria(ref DadosOrdenados, id_initial);
+
+                watch.Stop();
+                PesquisaBinaria[i, 0] = watch.ElapsedMilliseconds * 1000000;
+
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
+
+                Pesquisa_Binaria(ref DadosOrdenados, id_mid);
+
+                watch.Stop();
+                PesquisaBinaria[i, 1] = watch.ElapsedMilliseconds * 1000000;
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
+
+                Console.WriteLine(Pesquisa_Binaria(ref DadosOrdenados, id_final).bedrooms);
+
+                watch.Stop();
+                PesquisaBinaria[i, 2] = watch.ElapsedMilliseconds * 1000000;
+
+                #endregion
+               
+            }
+
+            //--> Teste Pesquisa Binaria
+            FileStream arq = new FileStream("BinarySearch.txt", FileMode.Append);
+            StreamWriter write = new StreamWriter(arq);
+
+            double[] r = new double[3];
+            r = MediaTempo(PesquisaBinaria);
+
+            write.WriteLine("{0};{1};{2}", r[0], r[1], r[2]);
+
+
+            write.Close();
+            arq.Close();
+
+
+        }
+
+
+        #endregion
+
+
+        #region Binary Tree
+
+        public static void Test_BinaryTree(ref Registro[] dados, int id_initial, int id_mid, int id_final)
+        {
+
+            double[,] ArvoreBinaria = new double[5, 3];
+
+            //--> Arvore
+            ArvoreBinaria arvore = new ArvoreBinaria();
+
+            for (int i = 0; i < dados.Length; i++)
+                arvore.Inserir(dados[i]);
+
+            for (int i = 0; i < 5; i++)
+            {
+
+                //Arvore Binaria --> room_id
+                #region ArvoreBinaria
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+
+                arvore.Pesquisar(id_initial);
+
+                watch.Stop();
+                ArvoreBinaria[i, 0] = watch.ElapsedMilliseconds * 1000000;
+
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
+
+                arvore.Pesquisar(id_mid);
+
+                watch.Stop();
+                ArvoreBinaria[i, 1] = watch.ElapsedMilliseconds * 1000000;
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
+
+                Console.WriteLine(arvore.Pesquisar(id_final).bedrooms);
+
+                watch.Stop();
+                ArvoreBinaria[i, 2] = watch.ElapsedMilliseconds * 1000000;
+                #endregion
+
+            }
+
+            FileStream arq = new FileStream("BinaryTree.txt", FileMode.Append);
+            StreamWriter write = new StreamWriter(arq);
+
+            double[] r = new double[3];
+            r = MediaTempo(ArvoreBinaria);
+
+            write.WriteLine("{0};{1};{2}", r[0], r[1], r[2]);
+
+
+            write.Close();
+            arq.Close();
+
+
+
+        }
+
+        #endregion
+
+
+        #region Table Hash
+
+        public static void Test_HashTable(ref Registro[] dados, int id_initial, int id_mid, int id_final)
+        {
+
+            double[,] TabelaHash = new double[5, 3];
+
+            //--> TabelaHash
+            TabelaHash hash = new TabelaHash(12033);
+
+            for (int i = 0; i < dados.Length; i++)
+                hash.Inserir(dados[i]);
+
+            for (int i = 0; i < 5; i++)
+            {
+                //Tabela Hash --> room_id
+                #region TabelaHash
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+
+                hash.Pesquisar(id_initial);
+
+                watch.Stop();
+                TabelaHash[i, 0] = watch.ElapsedMilliseconds * 1000000;
+
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
+
+                hash.Pesquisar(id_mid);
+
+                watch.Stop();
+                TabelaHash[i, 1] = watch.ElapsedMilliseconds * 1000000;
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
+
+                Console.WriteLine(hash.Pesquisar(id_final).bedrooms);
+
+                watch.Stop();
+                TabelaHash[i, 2] = watch.ElapsedMilliseconds * 1000000;
+                #endregion
+
+            }
+
+
+
+
+            FileStream arq = new FileStream("HashTable.txt", FileMode.Append);
+            StreamWriter write = new StreamWriter(arq);
+
+            double[] r = new double[3];
+            r = MediaTempo(TabelaHash);
+
+            write.WriteLine("{0};{1};{2}", r[0], r[1], r[2]);
+
+
+            write.Close();
+            arq.Close();
+        }
+
+        #endregion
+
+        #endregion
 
 
 
