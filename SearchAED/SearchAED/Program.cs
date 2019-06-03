@@ -4,6 +4,12 @@ using System.Threading;
 
 namespace SearchAED
 {
+    class SemiRegistro
+    {
+        public string country { get; set; }
+        public int accommodates { get; set; }
+    }
+
     class Registro
     {
         //chave -> room_id
@@ -63,20 +69,35 @@ namespace SearchAED
 
         public Registro Pesquisar(int Reg)
         {
-            Celula temp = Inicio.Prox;
+            Celula aux = Inicio.Prox;
 
-            while (temp != null)
+            int cont = 0;
+
+            Registro temp  = null;
+
+            while (aux != null)
             {
-                if (temp.Dado.room_id == Reg)
-                    return temp.Dado;
-
-                temp = temp.Prox;
+                cont++;
+                if (aux.Dado.room_id == Reg)
+                {
+                    temp = aux.Dado;
+                    break;
+                }
+                aux = aux.Prox;
             }
 
-            return null;
+
+            FileStream arq = new FileStream("teste.txt", FileMode.Append);
+            StreamWriter write = new StreamWriter(arq);
+
+            write.WriteLine("{0};{1};","hash",cont);
+
+
+            write.Close();
+            arq.Close();
+
+            return temp;
         }
-
-
 
     }
 
@@ -122,16 +143,32 @@ namespace SearchAED
 
         public Registro Pesquisar(int _key)
         {
-           return Pesquisar(Raiz, _key);
+           int cont = 0;
+
+           Registro temp = Pesquisar(Raiz, _key, ref cont);
+
+            FileStream arq = new FileStream("teste.txt", FileMode.Append);
+            StreamWriter write = new StreamWriter(arq);
+
+            write.WriteLine("{0};{1};", "Tree", cont);
+
+
+            write.Close();
+            arq.Close();
+
+            return temp;
+
         }
 
-        private Registro Pesquisar(No no, int key)
+        private Registro Pesquisar(No no, int key, ref int cont)
         {
             if (no == null)
                 return null;
 
-            if (key < no.Dado.room_id) return Pesquisar(no.Esq, key);
-            else if (key > no.Dado.room_id) return Pesquisar(no.Dir, key);
+            cont++;
+
+            if (key < no.Dado.room_id) return Pesquisar(no.Esq, key,ref cont);
+            else if (key > no.Dado.room_id) return Pesquisar(no.Dir, key,ref cont);
             else return no.Dado;
         }
 
@@ -177,7 +214,6 @@ namespace SearchAED
         //--> Pesquisa Binaria
         static Registro[] QuickSort(Registro[] vetor, int primeiro, int ultimo)
         {
-
             int baixo, alto, meio, pivo;
             Registro repositorio;
             baixo = primeiro;
@@ -220,13 +256,21 @@ namespace SearchAED
         {
             int Inicio = 0;
             int Fim = vetor.Length - 1;
+            int cont = 0;
+
+            Registro temp = null;
 
             while (Inicio <= Fim)
             {
                 int Meio = (Inicio + Fim) / 2;
 
+                cont++;
+
                 if (vetor[Meio].room_id == room_id)
-                    return vetor[Meio];
+                {
+                    temp = vetor[Meio];
+                    break;
+                }
 
                 if (vetor[Meio].room_id > room_id)
                     Fim = Meio - 1;
@@ -235,19 +279,45 @@ namespace SearchAED
 
             }
 
-            return null;
+            FileStream arq = new FileStream("teste.txt", FileMode.Append);
+            StreamWriter write = new StreamWriter(arq);
+
+            write.WriteLine("{0};{1};", "binary", cont);
+
+
+            write.Close();
+            arq.Close();
+
+            return temp;
         }
 
 
         //--> Pesquisa Sequencial
         static Registro Pesquisa_Sequencial(ref Registro[] vetor, int room_id)
         {
+            int cont = 0;
+            Registro temp = null;
+
             for(int i=0; i < vetor.Length; i++)
             {
+                cont++;
                 if (vetor[i].room_id == room_id)
-                    return vetor[i];
+                {
+                    temp = vetor[i];
+                    break;
+                }
             }
-            return null;
+
+            FileStream arq = new FileStream("teste.txt", FileMode.Append);
+            StreamWriter write = new StreamWriter(arq);
+
+            write.WriteLine("{0};{1};", "sequential", cont);
+
+
+            write.Close();
+            arq.Close();
+
+            return temp;
         }
 
 
@@ -350,17 +420,21 @@ namespace SearchAED
 
         public static void id_test(ref Registro[] dados)
         {
-            int mid = dados.Length % 2;
+            int mid = dados.Length / 2;
             int final = dados.Length - 1;
 
             int id_initial = dados[0].room_id;
             int id_mid = dados[mid].room_id;
             int id_final = dados[final].room_id;
 
+            Console.WriteLine(id_initial);
+            Console.WriteLine(id_mid);
+            Console.WriteLine(id_final);
+
             Test_Sequential(ref dados, id_initial, id_mid, id_final);
             Test_BinarySearch(ref dados, id_initial, id_mid, id_final);
             Test_HashTable(ref dados, id_initial, id_mid, id_final);
-            Test_BinaryTree(ref dados, id_initial, id_mid, id_final);
+            //Test_BinaryTree(ref dados, id_initial, id_mid, id_final);
 
         }
 
@@ -381,7 +455,7 @@ namespace SearchAED
                 Pesquisa_Sequencial(ref dados, id_initial);
 
                 watch.Stop();
-                Sequencial[i, 0] = watch.ElapsedMilliseconds * 1000000;
+                Sequencial[i, 0] = watch.ElapsedMilliseconds * 1000;
 
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
@@ -389,14 +463,14 @@ namespace SearchAED
                 Pesquisa_Sequencial(ref dados, id_mid);
 
                 watch.Stop();
-                Sequencial[i, 1] = watch.ElapsedMilliseconds * 1000000;
+                Sequencial[i, 1] = watch.ElapsedMilliseconds * 1000;
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
 
-                Console.WriteLine(Pesquisa_Sequencial(ref dados, id_final).bedrooms);
+                Pesquisa_Sequencial(ref dados, id_final);
 
                 watch.Stop();
-                Sequencial[i, 2] = watch.ElapsedMilliseconds * 1000000;
+                Sequencial[i, 2] = watch.ElapsedMilliseconds * 1000;
 
                 #endregion
 
@@ -439,7 +513,7 @@ namespace SearchAED
                 Pesquisa_Binaria(ref DadosOrdenados, id_initial);
 
                 watch.Stop();
-                PesquisaBinaria[i, 0] = watch.ElapsedMilliseconds * 1000000;
+                PesquisaBinaria[i, 0] = watch.ElapsedMilliseconds * 1000;
 
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
@@ -447,14 +521,14 @@ namespace SearchAED
                 Pesquisa_Binaria(ref DadosOrdenados, id_mid);
 
                 watch.Stop();
-                PesquisaBinaria[i, 1] = watch.ElapsedMilliseconds * 1000000;
+                PesquisaBinaria[i, 1] = watch.ElapsedMilliseconds * 1000;
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
 
-                Console.WriteLine(Pesquisa_Binaria(ref DadosOrdenados, id_final).bedrooms);
+                Pesquisa_Binaria(ref DadosOrdenados, id_final);
 
                 watch.Stop();
-                PesquisaBinaria[i, 2] = watch.ElapsedMilliseconds * 1000000;
+                PesquisaBinaria[i, 2] = watch.ElapsedMilliseconds * 1000;
 
                 #endregion
                
@@ -503,7 +577,7 @@ namespace SearchAED
                 arvore.Pesquisar(id_initial);
 
                 watch.Stop();
-                ArvoreBinaria[i, 0] = watch.ElapsedMilliseconds * 1000000;
+                ArvoreBinaria[i, 0] = watch.ElapsedMilliseconds * 1000;
 
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
@@ -511,14 +585,14 @@ namespace SearchAED
                 arvore.Pesquisar(id_mid);
 
                 watch.Stop();
-                ArvoreBinaria[i, 1] = watch.ElapsedMilliseconds * 1000000;
+                ArvoreBinaria[i, 1] = watch.ElapsedMilliseconds * 1000;
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
 
-                Console.WriteLine(arvore.Pesquisar(id_final).bedrooms);
+                arvore.Pesquisar(id_final);
 
                 watch.Stop();
-                ArvoreBinaria[i, 2] = watch.ElapsedMilliseconds * 1000000;
+                ArvoreBinaria[i, 2] = watch.ElapsedMilliseconds * 1000;
                 #endregion
 
             }
@@ -550,7 +624,7 @@ namespace SearchAED
             double[,] TabelaHash = new double[5, 3];
 
             //--> TabelaHash
-            TabelaHash hash = new TabelaHash(12033);
+            TabelaHash hash = new TabelaHash(63647);
 
             for (int i = 0; i < dados.Length; i++)
                 hash.Inserir(dados[i]);
@@ -564,7 +638,7 @@ namespace SearchAED
                 hash.Pesquisar(id_initial);
 
                 watch.Stop();
-                TabelaHash[i, 0] = watch.ElapsedMilliseconds * 1000000;
+                TabelaHash[i, 0] = watch.ElapsedMilliseconds * 1000;
 
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
@@ -572,14 +646,14 @@ namespace SearchAED
                 hash.Pesquisar(id_mid);
 
                 watch.Stop();
-                TabelaHash[i, 1] = watch.ElapsedMilliseconds * 1000000;
+                TabelaHash[i, 1] = watch.ElapsedMilliseconds * 1000;
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
 
-                Console.WriteLine(hash.Pesquisar(id_final).bedrooms);
+                hash.Pesquisar(id_final);
 
                 watch.Stop();
-                TabelaHash[i, 2] = watch.ElapsedMilliseconds * 1000000;
+                TabelaHash[i, 2] = watch.ElapsedMilliseconds * 1000;
                 #endregion
 
             }
@@ -601,6 +675,33 @@ namespace SearchAED
         }
 
         #endregion
+
+        #endregion
+
+        //teste --> Número de quartos
+        #region bedrooms
+
+        public static void test_bedroom(ref Registro[] dados)
+        {
+            FileStream arq = new FileStream("dados_airbnb.csv", FileMode.Open);
+            StreamReader read = new StreamReader(arq);
+            read.ReadLine();
+            string linha;
+            string[] linhasplit;
+
+            for (int i = 0; i < dados.Length; i++)
+            {
+                linha = read.ReadLine();
+                if (linha != null)
+                {
+                    linhasplit = linha.Split(';');
+                    dados[i] = GeraRegistro(linhasplit);
+                }
+            }
+            read.Close();
+            arq.Close();
+        }
+
 
         #endregion
 
