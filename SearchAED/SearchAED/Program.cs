@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
@@ -6,7 +7,7 @@ namespace SearchAED
 {
     class SemiRegistro
     {
-        public string country { get; set; }
+        public string city { get; set; }
         public int accommodates { get; set; }
     }
 
@@ -27,7 +28,7 @@ namespace SearchAED
         public string property_type { get; set; }
     }
 
-    class List
+    class Lista
     {
         class Celula
         {
@@ -39,7 +40,7 @@ namespace SearchAED
         private Celula Fim;
         private int Tam;
 
-        public List()
+        public Lista()
         {
             Tam = 0;
             Inicio = new Celula();
@@ -176,16 +177,16 @@ namespace SearchAED
 
     class TabelaHash
     {
-        List[] tabela;
+        Lista[] tabela;
         int Max;
 
         public TabelaHash(int _max)
         {
             Max = _max;
-            tabela = new List[Max];
+            tabela = new Lista[Max];
 
             for (int i = 0; i < Max; i++)
-                tabela[i] = new List();
+                tabela[i] = new Lista();
         }
 
         private int h(int _chave)
@@ -279,7 +280,7 @@ namespace SearchAED
 
             }
 
-            FileStream arq = new FileStream("teste.txt", FileMode.Append);
+            FileStream arq = new FileStream("teste.csv", FileMode.Append);
             StreamWriter write = new StreamWriter(arq);
 
             write.WriteLine("{0};{1};", "binary", cont);
@@ -308,7 +309,7 @@ namespace SearchAED
                 }
             }
 
-            FileStream arq = new FileStream("teste.txt", FileMode.Append);
+            FileStream arq = new FileStream("teste.csv", FileMode.Append);
             StreamWriter write = new StreamWriter(arq);
 
             write.WriteLine("{0};{1};", "sequential", cont);
@@ -341,8 +342,9 @@ namespace SearchAED
             return x;
         }
 
-        static void LerArquivo(ref Registro[] dados)
+        static void LerArquivo(ref Registro[] dados, ref List<SemiRegistro> cidades)
         {
+            
             FileStream arq = new FileStream("dados_airbnb.csv", FileMode.Open);
             StreamReader read = new StreamReader(arq);
             read.ReadLine();
@@ -356,6 +358,24 @@ namespace SearchAED
                 {
                     linhasplit = linha.Split(';');
                     dados[i] = GeraRegistro(linhasplit);
+
+                    bool validate = true;
+                    
+                    foreach(SemiRegistro x in cidades)
+                    {
+                        if (x.city == dados[i].city)
+                        {
+                            validate = false;
+                            x.accommodates++;
+                        }
+                    }
+                    if (validate)
+                    {
+                        SemiRegistro x = new SemiRegistro();
+                        x.city = dados[i].city;
+                        x.accommodates = 0;
+                        cidades.Add(x);
+                    }
                 }
             }
             read.Close();
@@ -408,7 +428,14 @@ namespace SearchAED
         static void Main(string[] args)
         {
             Registro[] dados = new Registro[128000];
-            LerArquivo(ref dados);
+            List<SemiRegistro> cidades = new List<SemiRegistro>();
+            LerArquivo(ref dados, ref cidades);
+            foreach(SemiRegistro x in cidades)
+            {
+                Console.WriteLine("\nCidade: {0}", x.city);
+                Console.WriteLine("Quantidade de quartos: {0}", x.accommodates);
+                Console.WriteLine();
+            }
 
             id_test(ref dados);
           
